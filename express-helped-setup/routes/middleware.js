@@ -4,69 +4,76 @@ var filessystem = require('pn/fs');
 var base64ToImage = require('base64-to-image');
 var im = require('imagemagick');
 
-var createDir = function (req, res,next) {
+var createDir = function (req, res, next) {
     if (!filessystem.existsSync(dir)){
         filessystem.mkdirSync(dir);
-    }else
-    {
-        console.log("Directory already exist");
+    } else {
+      console.log("Directory already exist");
     }
     parseRequestParams(req,res);
     next();
 }
 var parseRequestParams= function(req,res){
+  
+  try{
     var requestData = req.body;
+   }
+   catch(err){
+      console.log(err);
+   }
+
+    console.log(requestData,"requestData");
     var stream = "";
     var streamType="";
-  	var imageData = "";
-  	var parametersArray = [];
-  	var width = 0;
-  	var height = 0;
-  	var exportFileName = "";
-  	var exportFormat = "";
-  	var exportAction = "";
+    var imageData = "";
+    var parametersArray = [];
+    var width = 0;
+    var height = 0;
+    var exportFileName = "";
+    var exportFormat = "";
+    var exportAction = "";
 
-  	if (requestData["stream"]) {
-  		stream = requestData["stream"];
-  	} else {
-  		raiseError("101");
-  	}
+    if (requestData["stream"]) {
+      stream = requestData["stream"];
+    } else {
+      raiseError("101");
+    }
 
-  	if (requestData["stream_type"]) {
-  		streamType = requestData["stream_type"];
-  		//console.log(streamType);
-  	} else {
-  		raiseError("101");
-  	}
+    if (requestData["stream_type"]) {
+      streamType = requestData["stream_type"];
+      //console.log(streamType);
+    } else {
+      raiseError("101");
+    }
 
-  	if(requestData["meta_width"]!="" && requestData["meta_height"] !=""){
-  		width = requestData["meta_width"];
-  		height = requestData["meta_height"];
-  	}
-  	else{
-  		raiseError("101");
-  	}
+    if(requestData["meta_width"]!=="" && requestData["meta_height"] !==""){
+      width = requestData["meta_width"];
+      height = requestData["meta_height"];
+    }
+    else{
+      raiseError("101");
+    }
 
-  	if(requestData["parameters"] != ""){
-  		parametersArray = requestData["parameters"].split("|");
-  		exportFileName = parametersArray[0].split('=').pop();
-	  	exportFormat = parametersArray[1].split('=').pop();
-	  	exportAction = parametersArray[2].split('=').pop();
-  	}
-	else{
-		raiseError("100");	
-	}
+    if(requestData["parameters"] !== ""){
+      parametersArray = requestData["parameters"].split("|");
+      exportFileName = parametersArray[0].split('=').pop();
+      exportFormat = parametersArray[1].split('=').pop();
+      exportAction = parametersArray[2].split('=').pop();
+    }
+     else{
+    raiseError("100");  
+   }
 
-	requestObject = {
-  		"stream":stream,
-  		"streamType":streamType,
-  		"width":width,
-  		"height":height, 
-  		"exportFileName":exportFileName, 
-  		"exportFormat":exportFormat, 
-  		"exportAction":exportAction
-  	}
-  	 stream_Type(requestObject,res);
+    requestObject = {
+      "stream":stream,
+      "streamType":streamType,
+      "width":width,
+      "height":height, 
+      "exportFileName":exportFileName, 
+      "exportFormat":exportFormat, 
+      "exportAction":exportAction
+    }
+    stream_Type(requestObject,res);
 }
 
 var stream_Type = function(requestObject,res){
@@ -80,7 +87,7 @@ var stream_Type = function(requestObject,res){
       
     else if(requestObject["streamType"]=='IMAGE-DATA'){
       var file = convertBase64ToImage(requestObject,function(image){ 
-        console.log("send");
+        //console.log("send");
         res.download(image);
       });
     }

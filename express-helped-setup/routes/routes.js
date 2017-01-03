@@ -5,7 +5,6 @@ var middleware = require('./middleware');
 
 var dir = 'ExportedImages/';
 
-//var app = express();
 router.post('/', middleware);
 
 module.exports = router;
