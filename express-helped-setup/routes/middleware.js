@@ -4,8 +4,6 @@ var filessystem = require('fs');
 var base64ToImage = require('base64-to-image');
 var im = require('imagemagick');
 var timestamp = require('timestamp');
-console.log(timestamp(),"timestamp");
-
 
 var dir = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
 
@@ -135,7 +133,7 @@ function convertBase64ToImage(requestObject, send, res){
         console.log('File saved');
     }
     else{
-            console.log('Action not supported');
+      console.log('Action not supported');
             
       }
 
@@ -152,11 +150,9 @@ function convertSvgToImage(requestObject, send,res){
 
       filessystem.writeFile('FusionCharts.svg', svg, (err) => {
         if (err) throw err;
-        console.log('It\'s saved!');
 
         im.convert(['FusionCharts.svg',opFile], function(err, stdout){
           if (err) throw err;
-          console.log('stdout:', stdout);
 
           if (requestObject["exportAction"]=='download') {
             var image = send(opFile);
@@ -179,26 +175,20 @@ function convertSvgToImage(requestObject, send,res){
 };
 
 var getRandomName = function(file) {
-    console.log('getRandomName');
-    var time = timestamp();
-    console.log(timestamp(),"timestamp");
-    var random =  Math.floor(Math.random(0-9));
-    var random_string = time+random;  // string will be unique because timestamp never repeat itself
-    console.log(random_string,'string');
-    return random_string;
+  var time = timestamp();
+  var random =  Math.floor(Math.random(0-9));
+  var random_string = time+random; 
+  return random_string;
 };
 
 var fileExist = function(path,file,type){
   if (!filessystem.existsSync(path+file+'.'+type)){
-        var fileName = file;
-         console.log(path+file,"inside if");
-        return fileName;
+      var fileName = file;
+      return fileName;
     }
     else{
-        var fileName = getRandomName(file);  
-        console.log("inside else");
-        console.log(fileName,'fileName');
-          return file+fileName;
+      var fileName = getRandomName(file);
+      return file+fileName;
     }
 };
 
