@@ -3,6 +3,9 @@ var bodyParser  = require('body-parser');
 var filessystem = require('fs');
 var base64ToImage = require('base64-to-image');
 var im = require('imagemagick');
+var timestamp = require('timestamp');
+console.log(timestamp(),"timestamp");
+
 
 var dir = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
 
@@ -79,7 +82,6 @@ var stream_Type = function(requestObject,res){
       var file = convertSvgToImage(requestObject,function(image){ 
         res.download(image,function(err){
           if (err) throw err;
-          filessystem.unlink('FusionCharts.svg');
           filessystem.unlink(image);
         });
       });
@@ -102,11 +104,11 @@ var stream_Type = function(requestObject,res){
 
 function convertBase64ToImage(requestObject, send, res){
   var base64Str = requestObject["stream"];
-  var path = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
+  var filePath = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
   var type =requestObject["exportFormat"];
-  var optionalObj = {'fileName':requestObject["exportFileName"], 'type':type};
-  console.log('inside convertBase64ToImage');
-  var fileName = requestObject["exportFileName"]+"."+type;
+
+  var name = requestObject["exportFileName"];
+  var opFile= name+"."+type;
 
   var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
       response = {};
@@ -118,14 +120,18 @@ function convertBase64ToImage(requestObject, send, res){
     response.type = matches[1];
     response.data = new Buffer(matches[2], 'base64');
 
-  filessystem.writeFile(path+fileName, response.data, function() {
-    console.log("here");
+  filessystem.writeFile(filePath+opFile, response.data, function() {
+   
     if(requestObject["exportAction"]=='download'){
-      var image = send(path,fileName);
+      var image = send(filePath,opFile);
       return image;
     }
     else if(requestObject["exportAction"]=='save'){
-        
+      var fileName = fileExist(filePath,name, type);
+      console.log(fileName, 'inside convertBase64ToImage', 'fileName');
+      filessystem.rename(filePath+opFile, filePath+fileName+'.'+type, function(err){
+        if (err) throw err;
+      })
         console.log('File saved');
     }
     else{
@@ -137,32 +143,63 @@ function convertBase64ToImage(requestObject, send, res){
 }
 
 function convertSvgToImage(requestObject, send,res){
-
   var svg = requestObject["stream"];
   var filePath = "D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/"; 
-  var fileName = requestObject["exportFileName"]+"."+requestObject["exportFormat"];
+  var name = requestObject["exportFileName"];
   var type = requestObject["exportFormat"];
-  var opFile = filePath+fileName;
+
+  var opFile = filePath+name+'.'+type;
+
       filessystem.writeFile('FusionCharts.svg', svg, (err) => {
         if (err) throw err;
         console.log('It\'s saved!');
+
         im.convert(['FusionCharts.svg',opFile], function(err, stdout){
           if (err) throw err;
           console.log('stdout:', stdout);
+
           if (requestObject["exportAction"]=='download') {
             var image = send(opFile);
             return image; 
           }
          else if(requestObject["exportAction"]=='save'){  
-            
-              console.log("file saved");
-              filessystem.unlink('FusionCharts.svg');
+              var fileName = fileExist(filePath, name, type);
+              filessystem.rename(opFile, filePath+fileName+'.'+type, function(err){
+                if (err) throw err;
+                filessystem.unlink('FusionCharts.svg');
+                console.log("file saved");
+              })
           }
           else{
             console.log('Action not supported');
           }
+
       });
     });  
+};
+
+var getRandomName = function(file) {
+    console.log('getRandomName');
+    var time = timestamp();
+    console.log(timestamp(),"timestamp");
+    var random =  Math.floor(Math.random(0-9));
+    var random_string = time+random;  // string will be unique because timestamp never repeat itself
+    console.log(random_string,'string');
+    return random_string;
+};
+
+var fileExist = function(path,file,type){
+  if (!filessystem.existsSync(path+file+'.'+type)){
+        var fileName = file;
+         console.log(path+file,"inside if");
+        return fileName;
+    }
+    else{
+        var fileName = getRandomName(file);  
+        console.log("inside else");
+        console.log(fileName,'fileName');
+          return file+fileName;
+    }
 };
 
 function raiseError(errorCode){
