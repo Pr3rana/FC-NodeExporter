@@ -1,28 +1,24 @@
 var express = require('express');
 var bodyParser  = require('body-parser');
-var filessystem = require('pn/fs');
+var filessystem = require('fs');
 var base64ToImage = require('base64-to-image');
 var im = require('imagemagick');
 
-var createDir = function (req, res, next) {
+var dir = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
+
+var createDir = function (req, res) {
+
     if (!filessystem.existsSync(dir)){
         filessystem.mkdirSync(dir);
-    } else {
-      console.log("Directory already exist");
+        console.log(dir,"dir");
+    }else
+    {
+        console.log("Directory already exist");
     }
-    parseRequestParams(req,res);
-    next();
-}
-var parseRequestParams= function(req,res){
-  
-  try{
-    var requestData = req.body;
-   }
-   catch(err){
-      console.log(err);
-   }
+};
 
-    console.log(requestData,"requestData");
+var parseRequestParams= function(req, res){
+    var requestData = req.body;
     var stream = "";
     var streamType="";
     var imageData = "";
@@ -33,6 +29,8 @@ var parseRequestParams= function(req,res){
     var exportFormat = "";
     var exportAction = "";
 
+    createDir();
+
     if (requestData["stream"]) {
       stream = requestData["stream"];
     } else {
@@ -41,12 +39,11 @@ var parseRequestParams= function(req,res){
 
     if (requestData["stream_type"]) {
       streamType = requestData["stream_type"];
-      //console.log(streamType);
     } else {
       raiseError("101");
     }
 
-    if(requestData["meta_width"]!=="" && requestData["meta_height"] !==""){
+    if(requestData["meta_width"]!="" && requestData["meta_height"] !=""){
       width = requestData["meta_width"];
       height = requestData["meta_height"];
     }
@@ -54,17 +51,17 @@ var parseRequestParams= function(req,res){
       raiseError("101");
     }
 
-    if(requestData["parameters"] !== ""){
+    if(requestData["parameters"] != ""){
       parametersArray = requestData["parameters"].split("|");
       exportFileName = parametersArray[0].split('=').pop();
       exportFormat = parametersArray[1].split('=').pop();
       exportAction = parametersArray[2].split('=').pop();
     }
-     else{
+  else{
     raiseError("100");  
-   }
+  }
 
-    requestObject = {
+  requestObject = {
       "stream":stream,
       "streamType":streamType,
       "width":width,
@@ -73,35 +70,43 @@ var parseRequestParams= function(req,res){
       "exportFormat":exportFormat, 
       "exportAction":exportAction
     }
-    stream_Type(requestObject,res);
-}
+     stream_Type(requestObject,res);
+};
+
 
 var stream_Type = function(requestObject,res){
 
   if(requestObject["streamType"]=='svg'){
       var file = convertSvgToImage(requestObject,function(image){ 
-        //console.log("send");
-        res.download(image);
+        res.download(image,function(err){
+          if (err) throw err;
+          filessystem.unlink('FusionCharts.svg');
+          filessystem.unlink(image);
+        });
       });
     }
       
     else if(requestObject["streamType"]=='IMAGE-DATA'){
-      var file = convertBase64ToImage(requestObject,function(image){ 
-        //console.log("send");
-        res.download(image);
-      });
+      var file = convertBase64ToImage(requestObject,function(path,fileName){ 
+        console.log("send");
+        res.download(path+fileName, function(err){
+          if(err) throw err;
+          filessystem.unlink(path+fileName);
+
+        });
+      },res);
     }
     else{
       console.log("data type not supported");
     }
 };
 
-function convertBase64ToImage(requestObject, send){
+function convertBase64ToImage(requestObject, send, res){
   var base64Str = requestObject["stream"];
-  var path = './ExportedImages/';
+  var path = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
   var type =requestObject["exportFormat"];
   var optionalObj = {'fileName':requestObject["exportFileName"], 'type':type};
-  console.log('convertBase64ToImage');
+  console.log('inside convertBase64ToImage');
   var fileName = requestObject["exportFileName"]+"."+type;
 
   var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
@@ -115,28 +120,48 @@ function convertBase64ToImage(requestObject, send){
     response.data = new Buffer(matches[2], 'base64');
 
   filessystem.writeFile(path+fileName, response.data, function() {
-    var image = send(path+fileName);
-    return image;
+    console.log("here");
+    if(requestObject["exportAction"]=='download'){
+      var image = send(path,fileName);
+      return image;
+    }
+    else if(requestObject["exportAction"]=='save'){
+        
+        console.log('File saved');
+    }
+    else{
+            console.log('Action not supported');
+            
+      }
+
   });
 }
 
-function convertSvgToImage(requestObject, send){
+function convertSvgToImage(requestObject, send,res){
 
   var svg = requestObject["stream"];
-  var filePath = "D:/Code/Node/tutorial1/ExportedImages/"; 
+  var filePath = "D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/"; 
   var fileName = requestObject["exportFileName"]+"."+requestObject["exportFormat"];
   var type = requestObject["exportFormat"];
   var opFile = filePath+fileName;
- 
       filessystem.writeFile('FusionCharts.svg', svg, (err) => {
         if (err) throw err;
         console.log('It\'s saved!');
-        im.convert(['FusionCharts.svg',opFile], 
-        function(err, stdout){
+        im.convert(['FusionCharts.svg',opFile], function(err, stdout){
           if (err) throw err;
           console.log('stdout:', stdout);
-          var image = send(opFile);
-          return image;
+          if (requestObject["exportAction"]=='download') {
+            var image = send(opFile);
+            return image; 
+          }
+         else if(requestObject["exportAction"]=='save'){  
+            
+              console.log("file saved");
+              filessystem.unlink('FusionCharts.svg');
+          }
+          else{
+            console.log('Action not supported');
+          }
       });
     });  
 };
