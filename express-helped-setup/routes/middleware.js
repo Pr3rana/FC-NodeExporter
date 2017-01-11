@@ -73,7 +73,6 @@ var parseRequestParams= function(req, res){
      stream_Type(requestObject,res);
 };
 
-
 var stream_Type = function(requestObject,res){
 
   if(requestObject["streamType"]=='svg'){
