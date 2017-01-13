@@ -4,16 +4,17 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 var index = require('./routes/index');
 var routes = require('./routes/routes');
 var users = require('./routes/users');
-
 var app = express();
+app.use(cors());
 
-	app.get('/api/posts', function (req, res) {
-	console.log(req.body,"Got a POST request for the homepage");
-	res.send(util.inspect(req.query,false,null));
+  app.get('/api/posts', function (req, res) {
+  console.log(req.body,"Got a POST request for the homepage");
+  res.send(util.inspect(req.query,false,null));
 })
 
 // view engine setup

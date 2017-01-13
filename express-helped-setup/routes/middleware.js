@@ -1,9 +1,9 @@
-var express = require('express');
-var bodyParser  = require('body-parser');
-var filessystem = require('fs');
-var base64ToImage = require('base64-to-image');
-var im = require('imagemagick');
-var timestamp = require('timestamp');
+var express = require('express'),
+bodyParser  = require('body-parser'),
+filessystem = require('fs'),
+base64ToImage = require('base64-to-image'),
+im = require('imagemagick'),
+timestamp = require('timestamp');
 
 var dir = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
 
@@ -19,6 +19,7 @@ var createDir = function (req, res) {
 };
 
 var parseRequestParams= function(req, res){
+
     var requestData = req.body;
     var stream = "";
     var streamType="";
@@ -78,6 +79,7 @@ var stream_Type = function(requestObject,res){
 
   if(requestObject["streamType"]=='svg'){
       var file = convertSvgToImage(requestObject,function(image){ 
+        //res.setHeader('Access-Control-Allow-Origin', '*');
         res.download(image,function(err){
           if (err) throw err;
           filessystem.unlink(image);
@@ -87,7 +89,8 @@ var stream_Type = function(requestObject,res){
       
     else if(requestObject["streamType"]=='IMAGE-DATA'){
       var file = convertBase64ToImage(requestObject,function(path,fileName){ 
-        console.log("send");
+        //res.setHeader('Access-Control-Allow-Origin', 'http://192.168.0.193:3300');
+       
         res.download(path+fileName, function(err){
           if(err) throw err;
           filessystem.unlink(path+fileName);
@@ -126,14 +129,13 @@ function convertBase64ToImage(requestObject, send, res){
     }
     else if(requestObject["exportAction"]=='save'){
       var fileName = fileExist(filePath,name, type);
-      console.log(fileName, 'inside convertBase64ToImage', 'fileName');
       filessystem.rename(filePath+opFile, filePath+fileName+'.'+type, function(err){
         if (err) throw err;
       })
         console.log('File saved');
     }
     else{
-      console.log('Action not supported');
+            console.log('Action not supported');
             
       }
 
@@ -150,9 +152,11 @@ function convertSvgToImage(requestObject, send,res){
 
       filessystem.writeFile('FusionCharts.svg', svg, (err) => {
         if (err) throw err;
+        console.log('It\'s saved!');
 
         im.convert(['FusionCharts.svg',opFile], function(err, stdout){
           if (err) throw err;
+          console.log('stdout:', stdout);
 
           if (requestObject["exportAction"]=='download') {
             var image = send(opFile);
@@ -175,20 +179,20 @@ function convertSvgToImage(requestObject, send,res){
 };
 
 var getRandomName = function(file) {
-  var time = timestamp();
-  var random =  Math.floor(Math.random(0-9));
-  var random_string = time+random; 
-  return random_string;
+    var time = timestamp();
+    var random =  Math.floor(Math.random(0-9));
+    var random_string = time+random;
+    return random_string;
 };
 
 var fileExist = function(path,file,type){
   if (!filessystem.existsSync(path+file+'.'+type)){
-      var fileName = file;
-      return fileName;
+        var fileName = file;
+        return fileName;
     }
     else{
-      var fileName = getRandomName(file);
-      return file+fileName;
+        var fileName = getRandomName(file);
+          return file+fileName;
     }
 };
 
