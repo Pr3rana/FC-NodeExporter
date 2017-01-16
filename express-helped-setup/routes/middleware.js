@@ -1,6 +1,6 @@
-var express = require('express'),
-bodyParser  = require('body-parser'),
+var bodyParser  = require('body-parser'),
 filessystem = require('fs'),
+regex = require('filename-regex'),
 base64ToImage = require('base64-to-image'),
 im = require('imagemagick'),
 timestamp = require('timestamp');
@@ -8,11 +8,10 @@ timestamp = require('timestamp');
 
 var dir = './ExportedImages/';
 
-var createDir = function (req, res) {
+var createDir = function () {
 
     if (!filessystem.existsSync(dir)){
         filessystem.mkdirSync(dir);
-        console.log(dir,"dir");
     }else
     {
         console.log("Directory already exist");
@@ -21,7 +20,6 @@ var createDir = function (req, res) {
 
 var parseRequestParams= function(req, res){
 
-  console.log("createDir");
     var requestData = req.body;
     var stream = "";
     var streamType="";
@@ -80,8 +78,7 @@ var parseRequestParams= function(req, res){
 var stream_Type = function(requestObject,res){
 
   if(requestObject["streamType"]=='svg'){
-      var file = convertSvgToImage(requestObject,function(image){ 
-        //res.setHeader('Access-Control-Allow-Origin', '*');
+      var file = convertSvgToImage(requestObject,function(image){
         res.download(image,function(err){
           if (err) throw err;
           filessystem.unlink(image);
@@ -91,7 +88,6 @@ var stream_Type = function(requestObject,res){
       
     else if(requestObject["streamType"]=='IMAGE-DATA'){
       var file = convertBase64ToImage(requestObject,function(path,fileName){ 
-        //res.setHeader('Access-Control-Allow-Origin', 'http://192.168.0.193:3300');
         console.log("send");
         res.download(path+fileName, function(err){
           if(err) throw err;
@@ -110,8 +106,8 @@ function convertBase64ToImage(requestObject, send, res){
   var filePath = './ExportedImages/';
   var type =requestObject["exportFormat"];
 
-  var name = requestObject["exportFileName"];
-  var opFile= name+"."+type;
+  var name = requestObject["exportFileName"].match(regex());
+  var opFile= name[0]+'.'+type;
 
   var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
       response = {};
@@ -130,8 +126,7 @@ function convertBase64ToImage(requestObject, send, res){
       return image;
     }
     else if(requestObject["exportAction"]=='save'){
-      var fileName = fileExist(filePath,name, type);
-      console.log(fileName, 'inside convertBase64ToImage', 'fileName');
+      var fileName = fileExist(filePath,name[0], type);
       filessystem.rename(filePath+opFile, filePath+fileName+'.'+type, function(err){
         if (err) throw err;
       })
@@ -148,11 +143,11 @@ function convertBase64ToImage(requestObject, send, res){
 function convertSvgToImage(requestObject, send,res){
   var svg = requestObject["stream"];
   var filePath = "./ExportedImages/"; 
-  var name = requestObject["exportFileName"];
+  var name = requestObject["exportFileName"].match(regex());
   var type = requestObject["exportFormat"];
-
-  var opFile = filePath+name+'.'+type;
-
+  
+  var opFile= name[0]+'.'+type;
+  
       filessystem.writeFile('FusionCharts.svg', svg, (err) => {
         if (err) throw err;
         console.log('It\'s saved!');
@@ -167,7 +162,7 @@ function convertSvgToImage(requestObject, send,res){
           }
          else if(requestObject["exportAction"]=='save'){  
               var fileName = fileExist(filePath, name, type);
-              filessystem.rename(opFile, filePath+fileName+'.'+type, function(err){
+              filessystem.rename(opFile, filePath+name[0]+'.'+type, function(err){
                 if (err) throw err;
                 filessystem.unlink('FusionCharts.svg');
                 console.log("file saved");
