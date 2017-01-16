@@ -5,7 +5,8 @@ base64ToImage = require('base64-to-image'),
 im = require('imagemagick'),
 timestamp = require('timestamp');
 
-var dir = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
+
+var dir = './ExportedImages/';
 
 var createDir = function (req, res) {
 
@@ -20,6 +21,7 @@ var createDir = function (req, res) {
 
 var parseRequestParams= function(req, res){
 
+  console.log("createDir");
     var requestData = req.body;
     var stream = "";
     var streamType="";
@@ -90,7 +92,7 @@ var stream_Type = function(requestObject,res){
     else if(requestObject["streamType"]=='IMAGE-DATA'){
       var file = convertBase64ToImage(requestObject,function(path,fileName){ 
         //res.setHeader('Access-Control-Allow-Origin', 'http://192.168.0.193:3300');
-       
+        console.log("send");
         res.download(path+fileName, function(err){
           if(err) throw err;
           filessystem.unlink(path+fileName);
@@ -105,7 +107,7 @@ var stream_Type = function(requestObject,res){
 
 function convertBase64ToImage(requestObject, send, res){
   var base64Str = requestObject["stream"];
-  var filePath = 'D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/';
+  var filePath = './ExportedImages/';
   var type =requestObject["exportFormat"];
 
   var name = requestObject["exportFileName"];
@@ -129,6 +131,7 @@ function convertBase64ToImage(requestObject, send, res){
     }
     else if(requestObject["exportAction"]=='save'){
       var fileName = fileExist(filePath,name, type);
+      console.log(fileName, 'inside convertBase64ToImage', 'fileName');
       filessystem.rename(filePath+opFile, filePath+fileName+'.'+type, function(err){
         if (err) throw err;
       })
@@ -144,7 +147,7 @@ function convertBase64ToImage(requestObject, send, res){
 
 function convertSvgToImage(requestObject, send,res){
   var svg = requestObject["stream"];
-  var filePath = "D:/Code/Node/tutorial1/express-helped-setup/ExportedImages/"; 
+  var filePath = "./ExportedImages/"; 
   var name = requestObject["exportFileName"];
   var type = requestObject["exportFormat"];
 
@@ -179,19 +182,25 @@ function convertSvgToImage(requestObject, send,res){
 };
 
 var getRandomName = function(file) {
+    console.log('getRandomName');
     var time = timestamp();
+    console.log(timestamp(),"timestamp");
     var random =  Math.floor(Math.random(0-9));
-    var random_string = time+random;
+    var random_string = time+random;  // string will be unique because timestamp never repeat itself
+    console.log(random_string,'string');
     return random_string;
 };
 
 var fileExist = function(path,file,type){
   if (!filessystem.existsSync(path+file+'.'+type)){
         var fileName = file;
+         console.log(path+file,"inside if");
         return fileName;
     }
     else{
-        var fileName = getRandomName(file);
+        var fileName = getRandomName(file);  
+        console.log("inside else");
+        console.log(fileName,'fileName');
           return file+fileName;
     }
 };
