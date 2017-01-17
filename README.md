@@ -35,7 +35,7 @@ Step 5: The export handler either writes the exported chart/chart data to disk, 
 To use the private export server, the following attributes need to be configured correctly in the chart.
 
 | Attribute Name	     |      Value	                |     Description                                                            |
-|----------------------|:--------------------------:|---------------------------------------------------------------------------:|
+|----------------------|:--------------------------:|:--------------------------------------------------------------------------:|
 | exportEnabled   	   |        1	                  | Set to 1 to enable exporting the chart.                                    |
 | exportAtClientSide	 |        0	                  | Set to 0 to enable export via a private export server                      |
 | exportHandler	       |  http://192.168.0.55:3300/ | Set to the link of the export server	                                     |
