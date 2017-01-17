@@ -1,12 +1,9 @@
 var bodyParser  = require('body-parser'),
 filessystem = require('fs'),
 regex = require('filename-regex'),
-base64ToImage = require('base64-to-image'),
 im = require('imagemagick'),
-timestamp = require('timestamp');
-
-
-var dir = './ExportedImages/';
+timestamp = require('timestamp'),
+dir = './ExportedImages/';
 
 var createDir = function () {
 
@@ -109,9 +106,9 @@ function convertBase64ToImage(requestObject, send, res){
   var name = requestObject["exportFileName"].match(regex());
   var opFile= name[0]+'.'+type;
 
-  var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+  var matches = base64Str.match(/^data:([A-Za-z-+.\/]+);base64,(.+)$/),
       response = {};
-
+console.log(matches,"matches");
     if (matches.length !== 3) {
       return new Error('Invalid input string');
     }
@@ -148,54 +145,45 @@ function convertSvgToImage(requestObject, send,res){
   
   var opFile= name[0]+'.'+type;
   
-      filessystem.writeFile('FusionCharts.svg', svg, (err) => {
+    filessystem.writeFile('FusionCharts.svg', svg, (err) => {
+      if (err) throw err;
+      console.log('It\'s saved!');
+      im.convert(['FusionCharts.svg',opFile], function(err, stdout){
         if (err) throw err;
-        console.log('It\'s saved!');
 
-        im.convert(['FusionCharts.svg',opFile], function(err, stdout){
-          if (err) throw err;
-          console.log('stdout:', stdout);
-
-          if (requestObject["exportAction"]=='download') {
-            var image = send(opFile);
-            return image; 
-          }
-         else if(requestObject["exportAction"]=='save'){  
-              var fileName = fileExist(filePath, name, type);
-              filessystem.rename(opFile, filePath+name[0]+'.'+type, function(err){
-                if (err) throw err;
-                filessystem.unlink('FusionCharts.svg');
-                console.log("file saved");
-              })
-          }
-          else{
-            console.log('Action not supported');
-          }
+        if (requestObject["exportAction"]=='download') {
+          var image = send(opFile);
+          return image; 
+        }
+       else if(requestObject["exportAction"]=='save'){  
+            var fileName = fileExist(filePath,name[0], type);
+            filessystem.rename(opFile, filePath+fileName+'.'+type, function(err){
+              if (err) throw err;
+              filessystem.unlink('FusionCharts.svg');
+            })
+        }
+        else{
+          console.log('Action not supported');
+        }
 
       });
     });  
 };
 
 var getRandomName = function(file) {
-    console.log('getRandomName');
     var time = timestamp();
-    console.log(timestamp(),"timestamp");
     var random =  Math.floor(Math.random(0-9));
     var random_string = time+random;  // string will be unique because timestamp never repeat itself
-    console.log(random_string,'string');
     return random_string;
 };
 
 var fileExist = function(path,file,type){
   if (!filessystem.existsSync(path+file+'.'+type)){
         var fileName = file;
-         console.log(path+file,"inside if");
         return fileName;
     }
     else{
         var fileName = getRandomName(file);  
-        console.log("inside else");
-        console.log(fileName,'fileName');
           return file+fileName;
     }
 };
