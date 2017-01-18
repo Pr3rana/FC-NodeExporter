@@ -1,10 +1,12 @@
 var bodyParser  = require('body-parser'),
 filessystem = require('fs'),
 regex = require('filename-regex'),
+//required for old browser(eg IE8)
 im = require('imagemagick'),
 timestamp = require('timestamp'),
 dir = './ExportedImages/';
 
+//create the ExportedImages dir
 var createDir = function () {
 
     if (!filessystem.existsSync(dir)){
@@ -15,6 +17,7 @@ var createDir = function () {
     }
 };
 
+//parse the request parameters
 var parseRequestParams= function(req, res){
 
     var requestData = req.body;
@@ -72,6 +75,7 @@ var parseRequestParams= function(req, res){
      stream_Type(requestObject,res);
 };
 
+//checks the stream_type present in the req parameters
 var stream_Type = function(requestObject,res){
 
   if(requestObject["streamType"]=='svg'){
@@ -98,6 +102,7 @@ var stream_Type = function(requestObject,res){
     }
 };
 
+//Convert the base64 data  into image
 function convertBase64ToImage(requestObject, send, res){
   var base64Str = requestObject["stream"];
   var filePath = './ExportedImages/';
@@ -137,6 +142,7 @@ console.log(matches,"matches");
   });
 }
 
+//Convert the svg data  into image
 function convertSvgToImage(requestObject, send,res){
   var svg = requestObject["stream"];
   var filePath = "./ExportedImages/"; 
@@ -170,6 +176,7 @@ function convertSvgToImage(requestObject, send,res){
     });  
 };
 
+//get random name for the file when exportoption is set as save
 var getRandomName = function(file) {
     var time = timestamp();
     var random =  Math.floor(Math.random(0-9));
@@ -177,6 +184,7 @@ var getRandomName = function(file) {
     return random_string;
 };
 
+//To check whether the file exist or not
 var fileExist = function(path,file,type){
   if (!filessystem.existsSync(path+file+'.'+type)){
         var fileName = file;
@@ -188,6 +196,7 @@ var fileExist = function(path,file,type){
     }
 };
 
+//function called when error occurs at the time of parsing of requested data
 function raiseError(errorCode){
   var error = {
         "100":" Insufficient data.", 
