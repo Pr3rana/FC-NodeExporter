@@ -38,5 +38,5 @@ To use the private export server, the following attributes need to be configured
 |----------------------|:--------------------------:|:-------------------------------------------------------------------------- |
 | exportEnabled   	   |        1	                  | Set to 1 to enable exporting the chart.                                    |
 | exportAtClientSide	 |        0	                  | Set to 0 to enable export via a private export server                      |
-| exportHandler	       |  http://192.168.0.55:3300/ | Set to the link of the export server	                                     |
+| exportHandler	       |  http://localhost:3300/ | Set to the link of the export server	                                     |
 | exportAction	       |    save and download	      | Set to save to store the exported file on the private export server itself. Set to download to send the file to the user browser (client) for download.|

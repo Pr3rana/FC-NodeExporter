@@ -4,7 +4,7 @@ var bodyParser = require('body-parser'),
     //used for old browser(eg IE8)
     im = require('imagemagick'),
     timestamp = require('timestamp'),
-     dir = './ExportedImages/';
+     dir = './exported_images/';
 
 //creates the ExportedImages dir
 var createDir = function() {
