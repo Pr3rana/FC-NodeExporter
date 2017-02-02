@@ -32,6 +32,7 @@ logs
 .AppleDouble
 .LSOverride
 
+
 # Thumbnails
 ._*
 
@@ -48,4 +49,6 @@ logs
 .AppleDesktop
 Network Trash Folder
 Temporary Items
+exported_images
+node_modules
 .apdisk
